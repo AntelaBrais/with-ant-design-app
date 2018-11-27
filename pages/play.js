@@ -19,6 +19,7 @@ import {
   Card
 } from 'antd-mobile'
 import Link from 'next/link'
+import Router from 'next/router'
 
 const Item = List.Item
 
@@ -49,9 +50,6 @@ function Play() {
             let temp = doc.data().ejercicios
             listaEjercicios = [...temp]
             setItems(listaEjercicios)
-
-            // hacerCosasConItems()
-            // Con esa función haré cosas guay. Mira la declaración de la función para más info.
           } else {
             console.log('No such document!')
           }
@@ -68,14 +66,62 @@ function Play() {
   console.log('C' + items)
 
   if (Array.isArray(items) && items.length) {
-    document.getElementById('exercise').innerHTML = items[0].nameExercise
-    document.getElementById('setField').innerHTML = `Set: ${items[0].sets}`
-    document.getElementById('repField').innerHTML = `Reps: ${items[0].reps}`
+    var topSetMax = 0
+    var i = 0
+    var contadorSets = 1
+    var numeroEjercicios = items.length - 1
+
+    // Primera impresión. Acciones a realizar en cuanto obtengo los datos de entrenamiento.
+    console.log(i)
+    console.log(items)
+
+    populateView()
+  }
+
+  function populateView() {
+    topSetMax = items[i].sets // Asigno el número máximo de sets de ese ejercicio.
+    console.log('Mi i es:' + i)
+    console.log(items.length)
+
+    document.getElementById('exercise').innerHTML = items[i].nameExercise
+    document.getElementById('setField').innerHTML = `Set: ${contadorSets}`
+    document.getElementById('repField').innerHTML = `Reps: ${items[i].reps}`
     console.log(items)
   }
 
-  function hacerCosasConItems() {
-    // Aquí haré la manipulación que escribí en los papeles el viernes en la oficina
+  function pressAction() {
+    if (Array.isArray(items) && items.length) {
+      let relaxCounter = items[i].relax
+      document.getElementById('buttonAction').disabled = true
+      var myCountdown = setInterval(function() {
+        if (relaxCounter > 0) {
+          document.getElementById('buttonAction').innerHTML = relaxCounter
+          console.log(relaxCounter)
+          relaxCounter--
+        } else if (relaxCounter === 0) {
+          document.getElementById('buttonAction').innerHTML = 'Descanso'
+          document.getElementById('buttonAction').disabled = false
+
+          if (contadorSets == topSetMax) {
+            console.log(i)
+            console.log(items.length)
+            if (i == numeroEjercicios) {
+              Router.push('/')
+              clearInterval(myCountdown)
+            } else if (i < numeroEjercicios) {
+              i += 1
+              contadorSets = 1
+              populateView()
+              clearInterval(myCountdown)
+            }
+          } else if (contadorSets < topSetMax) {
+            contadorSets += 1
+            populateView()
+            clearInterval(myCountdown)
+          }
+        }
+      }, 1000)
+    }
   }
 
   return (
@@ -101,10 +147,10 @@ function Play() {
           W
         </h1>
         <h2 style={{ textAlign: 'center' }} id="setField">
-          Set: X
+          Set:
         </h2>
         <h2 style={{ textAlign: 'center' }} id="repField">
-          Reps: Y
+          Reps:
         </h2>
         <WhiteSpace size="lg" />
       </WingBlank>
@@ -112,7 +158,11 @@ function Play() {
         <WingBlank size="lg">
           <WingBlank size="lg">
             <WingBlank size="lg">
-              <Button style={{ borderRadius: 100 }} type="primary">
+              <Button
+                id="buttonAction"
+                style={{ borderRadius: 100 }}
+                type="primary"
+                onClick={pressAction}>
                 Descanso
               </Button>
             </WingBlank>
